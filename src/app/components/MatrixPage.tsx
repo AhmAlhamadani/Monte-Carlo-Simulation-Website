@@ -198,8 +198,7 @@ export function MatrixPage({
                         ref={(el) => {
                           inputRefs.current[k] = el;
                         }}
-                        type="number"
-                        step="0.05"
+                        type="text"
                         inputMode="decimal"
                         value={v}
                         aria-label={`Correlation between ${names[r]} and ${names[c]}`}
