@@ -84,7 +84,7 @@ function SavedRunItem({
   return (
     <li>
       <div
-        className={`group flex items-start gap-2 rounded-md border p-2.5 transition-colors ${
+        className={`flex items-start gap-2 rounded-md border p-2.5 ${
           isActive
             ? "border-primary bg-accent"
             : "border-transparent hover:border-border hover:bg-muted/60"
@@ -116,7 +116,7 @@ function SavedRunItem({
               variant="ghost"
               size="icon"
               aria-label={`Delete ${label}`}
-              className="size-7 shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+              className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
               onClick={(e) => e.stopPropagation()}
             >
               <Trash2 className="size-4" />

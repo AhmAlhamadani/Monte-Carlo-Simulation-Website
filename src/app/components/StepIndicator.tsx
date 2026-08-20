@@ -25,7 +25,7 @@ export function StepIndicator({
                 disabled={!clickable}
                 onClick={() => clickable && onStepClick?.(i)}
                 aria-current={isActive ? "step" : undefined}
-                className={`flex items-center gap-2.5 rounded-md px-2 py-1 text-left transition-colors ${
+                className={`flex items-center gap-2.5 rounded-md px-2 py-1 text-left ${
                   clickable ? "cursor-pointer hover:bg-accent/60" : "cursor-default"
                 }`}
               >

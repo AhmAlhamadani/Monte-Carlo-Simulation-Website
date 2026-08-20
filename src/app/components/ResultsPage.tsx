@@ -132,6 +132,7 @@ export function ResultsPage({
                 }}
               />
               <Tooltip
+                animationDuration={0}
                 cursor={{ fill: "var(--accent)", opacity: 0.4 }}
                 contentStyle={{
                   borderRadius: 8,
@@ -144,7 +145,7 @@ export function ResultsPage({
                 ]}
                 labelFormatter={(l) => `${l} low score${l === "1" ? "" : "s"}`}
               />
-              <Bar dataKey="pct" radius={[3, 3, 0, 0]} maxBarSize={64}>
+              <Bar dataKey="pct" radius={[3, 3, 0, 0]} maxBarSize={64} isAnimationActive={false}>
                 {data.map((d) => (
                   <Cell
                     key={`cell-${d.k}`}

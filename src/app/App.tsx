@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2 } from "lucide-react";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 import { SetupPage, type SetupValues } from "./components/SetupPage";
@@ -189,8 +188,7 @@ export default function App() {
   if (!dbReady) {
     return (
       <div className="flex h-full min-h-screen items-center justify-center bg-background text-muted-foreground">
-        <Loader2 className="size-6 animate-spin" aria-hidden />
-        <span className="sr-only">Loading saved runs…</span>
+        Loading…
       </div>
     );
   }

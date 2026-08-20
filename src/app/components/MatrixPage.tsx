@@ -211,7 +211,7 @@ export function MatrixPage({
                             focusNext(r, c);
                           }
                         }}
-                        className={`size-9 rounded-md border text-center text-[0.8rem] outline-none transition-colors ${
+                        className={`size-9 rounded-md border text-center text-[0.8rem] outline-none ${
                           invalid
                             ? "border-destructive bg-destructive/10 text-destructive"
                             : "border-border bg-input-background hover:border-primary/50"
