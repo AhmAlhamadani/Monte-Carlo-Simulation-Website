@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, Info } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -134,15 +134,6 @@ export function SetupPage({
             rows={3}
             onChange={(e) => setNotes(e.target.value)}
           />
-        </div>
-
-        <div className="flex items-start gap-2 rounded-md bg-accent/60 p-3 text-[0.85rem] text-accent-foreground">
-          <Info className="mt-0.5 size-4 shrink-0" />
-          <p>
-            This tool estimates how many low scores would be expected{" "}
-            <em>by chance</em> in a healthy person, given the correlations between
-            your tests. It supports interpretation — it is not a diagnosis.
-          </p>
         </div>
 
         {error && (

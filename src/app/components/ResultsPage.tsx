@@ -161,19 +161,6 @@ export function ResultsPage({
             </BarChart>
           </ResponsiveContainer>
         </div>
-
-        <div className="mt-4 rounded-md bg-muted/60 p-4 text-[0.9rem] leading-relaxed text-foreground">
-          <p>
-            In a healthy person, obtaining one or two low scores across a battery
-            of {analysis.numTests} correlated tests is often expected purely by
-            chance. Here, <strong>{fmt(oneOrMore)}%</strong> of simulated healthy
-            profiles produced <strong>at least one</strong> score at or below the{" "}
-            {analysis.percentile}th percentile, and{" "}
-            <strong>{fmt(twoOrMore)}%</strong> produced two or more. Use these
-            base rates to judge whether an observed pattern of low scores exceeds
-            what chance alone would predict.
-          </p>
-        </div>
       </div>
 
       {analysis.notes && (

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Activity, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 import { SetupPage, type SetupValues } from "./components/SetupPage";
@@ -197,28 +197,6 @@ export default function App() {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-background text-foreground">
-      <header className="bg-primary text-primary-foreground shadow-sm">
-        <div className="flex items-center gap-3 px-6 py-3">
-          <span className="flex size-9 items-center justify-center rounded-lg bg-primary-foreground/15 ring-1 ring-inset ring-primary-foreground/20">
-            <Activity className="size-5" strokeWidth={2.25} />
-          </span>
-          <div
-            style={{ fontFamily: "Lexend", fontWeight: 700, fontSize: "1.15rem", letterSpacing: "-0.02em" }}
-          >
-            PercentAbnormK
-          </div>
-          <span
-            className="ml-3 hidden rounded-full bg-primary-foreground/12 px-3 py-1 text-[0.72rem] text-primary-foreground/85 ring-1 ring-inset ring-primary-foreground/15 sm:inline"
-            style={{ letterSpacing: "0.02em" }}
-          >
-            Neuropsychology · Monte Carlo base rates
-          </span>
-          <span className="ml-auto hidden items-center gap-1.5 text-[0.78rem] text-primary-foreground/75 md:flex">
-            Abnormal-score estimator for correlated test batteries
-          </span>
-        </div>
-      </header>
-
       <div className="flex min-h-0 flex-1">
         <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
           <div className="border-b border-border bg-card px-6 py-3">

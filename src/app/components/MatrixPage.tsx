@@ -1,8 +1,7 @@
 import { useMemo, useRef, useState } from "react";
-import { ArrowLeft, Play, Eraser, CheckSquare, MousePointerSquareDashed, WandSparkles } from "lucide-react";
+import { ArrowLeft, Play } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Label } from "./ui/label";
 import {
   Tooltip,
   TooltipContent,
@@ -44,9 +43,6 @@ export function MatrixPage({
     ),
   );
 
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [multiSelect, setMultiSelect] = useState(false);
-  const [fillValue, setFillValue] = useState("");
   const [error, setError] = useState("");
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -70,50 +66,6 @@ export function MatrixPage({
       next[r][c] = v;
       return next;
     });
-  }
-
-  function handleCellClick(r: number, c: number) {
-    const k = key(r, c);
-    setSelected((prev) => {
-      const next = new Set(multiSelect ? prev : []);
-      if (multiSelect && next.has(k)) next.delete(k);
-      else next.add(k);
-      return next;
-    });
-  }
-
-  function selectAll() {
-    setSelected(new Set(cellOrder.map(([r, c]) => key(r, c))));
-    setMultiSelect(true);
-  }
-
-  function clearSelection() {
-    setSelected(new Set());
-  }
-
-  function applyFill() {
-    if (!isValid(fillValue) || fillValue.trim() === "") {
-      setError("Enter a value between −1.0 and 1.0 to fill selected cells.");
-      return;
-    }
-    setError("");
-    setValues((prev) => {
-      const next = prev.map((row) => row.slice());
-      selected.forEach((k) => {
-        const [r, c] = k.split("-").map(Number);
-        next[r][c] = fillValue;
-      });
-      return next;
-    });
-  }
-
-  function clearAllValues() {
-    setValues(
-      Array.from({ length: numTests }, () =>
-        Array.from({ length: numTests }, () => ""),
-      ),
-    );
-    setSelected(new Set());
   }
 
   function focusNext(r: number, c: number) {
@@ -164,9 +116,6 @@ export function MatrixPage({
     };
   }
 
-  const total = cellOrder.length;
-  const filled = cellOrder.filter(([r, c]) => values[r][c].trim() !== "").length;
-
   return (
     <div className="mx-auto max-w-5xl">
       <header className="mb-4">
@@ -179,84 +128,6 @@ export function MatrixPage({
         </p>
       </header>
 
-      {/* Toolbar */}
-      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4 shadow-sm">
-        <Button
-          type="button"
-          variant={multiSelect ? "default" : "outline"}
-          size="sm"
-          className="gap-2"
-          onClick={() => setMultiSelect((m) => !m)}
-          aria-pressed={multiSelect}
-        >
-          {multiSelect ? (
-            <CheckSquare className="size-4" />
-          ) : (
-            <MousePointerSquareDashed className="size-4" />
-          )}
-          {multiSelect ? "Multi-select on" : "Multi-select"}
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={selectAll} className="gap-2">
-          <CheckSquare className="size-4" /> Select all
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={clearSelection}
-          disabled={selected.size === 0}
-        >
-          Clear selection
-        </Button>
-
-        <div className="mx-1 h-8 w-px bg-border" aria-hidden />
-
-        <div className="flex items-end gap-2">
-          <div className="space-y-1">
-            <Label htmlFor="fill" className="text-[0.8rem]">
-              Fill selected ({selected.size})
-            </Label>
-            <Input
-              id="fill"
-              type="number"
-              step="0.05"
-              min={-1}
-              max={1}
-              placeholder="0.30"
-              value={fillValue}
-              onChange={(e) => setFillValue(e.target.value)}
-              className="h-8 w-24"
-            />
-          </div>
-          <Button
-            type="button"
-            size="sm"
-            className="gap-2"
-            onClick={applyFill}
-            disabled={selected.size === 0}
-          >
-            <WandSparkles className="size-4" /> Fill
-          </Button>
-        </div>
-
-        <div className="mx-1 h-8 w-px bg-border" aria-hidden />
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={clearAllValues}
-          className="gap-2 text-destructive hover:text-destructive"
-        >
-          <Eraser className="size-4" /> Clear all
-        </Button>
-
-        <div className="ml-auto text-[0.85rem] text-muted-foreground">
-          {filled} of {total} pairs entered
-        </div>
-      </div>
-
-      {/* Matrix */}
       <div className="overflow-x-auto rounded-lg border border-border bg-card p-4 shadow-sm">
         <table className="border-separate border-spacing-1">
           <thead>
@@ -282,7 +153,6 @@ export function MatrixPage({
           <tbody>
             {names.map((rowName, r) => (
               <tr key={r}>
-                {/* Row label / editable test name */}
                 <th className="sticky left-0 z-10 bg-card pr-2 text-left">
                   <div className="flex items-center gap-2">
                     <span
@@ -317,13 +187,11 @@ export function MatrixPage({
                     );
                   }
                   if (c > r) {
-                    // Upper triangle: mirror, shown faintly, not editable.
                     return <td key={c} aria-hidden />;
                   }
                   const k = key(r, c);
                   const v = values[r][c];
                   const invalid = !isValid(v);
-                  const isSel = selected.has(k);
                   return (
                     <td key={c}>
                       <input
@@ -336,7 +204,6 @@ export function MatrixPage({
                         value={v}
                         aria-label={`Correlation between ${names[r]} and ${names[c]}`}
                         aria-invalid={invalid}
-                        onFocus={() => handleCellClick(r, c)}
                         onChange={(e) => setCell(r, c, e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
@@ -347,9 +214,7 @@ export function MatrixPage({
                         className={`size-9 rounded-md border text-center text-[0.8rem] outline-none transition-colors ${
                           invalid
                             ? "border-destructive bg-destructive/10 text-destructive"
-                            : isSel
-                              ? "border-primary bg-accent ring-2 ring-primary"
-                              : "border-border bg-input-background hover:border-primary/50"
+                            : "border-border bg-input-background hover:border-primary/50"
                         }`}
                       />
                     </td>
@@ -360,12 +225,6 @@ export function MatrixPage({
           </tbody>
         </table>
       </div>
-
-      <p className="mt-3 text-[0.85rem] text-muted-foreground">
-        Tip: press <kbd className="rounded border border-border bg-muted px-1">Enter</kbd> to
-        jump to the next cell. Use Multi-select and Fill to set several pairs to
-        the same value at once.
-      </p>
 
       {error && (
         <p role="alert" className="mt-3 text-[0.9rem] text-destructive">

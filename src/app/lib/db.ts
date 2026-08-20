@@ -100,7 +100,7 @@ function upsertRunInternal(run: SavedRun) {
       JSON.stringify(run.correlations),
       JSON.stringify(run.result),
       run.createdAt,
-      run.updatedAt,
+      run.updatedAt ?? run.createdAt,
     ],
   );
 }
