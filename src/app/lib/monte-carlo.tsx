@@ -31,7 +31,7 @@ export interface SimulationResult {
 export function runSimulation(
   correlation: number[][],
   percentile: number,
-  iterations = 20000,
+  iterations = 100000,
 ): SimulationResult {
   const n = correlation.length;
   const zCut = jStat.normal.inv(percentile / 100, 0, 1);

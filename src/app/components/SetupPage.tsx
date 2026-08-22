@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { PERCENTILE_OPTIONS } from "../types";
+import { validateNumTests } from "../setup/validate";
 
 export interface SetupValues {
   name: string;
@@ -34,21 +35,18 @@ export function SetupPage({
   const [error, setError] = useState("");
 
   function handleContinue() {
-    const n = parseInt(numTests, 10);
-    if (!numTests || isNaN(n)) {
-      setError("Please enter the number of tests in the battery.");
-      return;
-    }
-    if (n < 2) {
-      setError("A battery needs at least 2 tests to analyse.");
-      return;
-    }
-    if (n > 25) {
-      setError("This tool supports a maximum of 25 tests.");
+    const parsed = validateNumTests(numTests);
+    if (!parsed.ok) {
+      setError(parsed.error);
       return;
     }
     setError("");
-    onContinue({ name: name.trim(), notes: notes.trim(), percentile, numTests: n });
+    onContinue({
+      name: name.trim(),
+      notes: notes.trim(),
+      percentile,
+      numTests: parsed.numTests,
+    });
   }
 
   const selected = PERCENTILE_OPTIONS.find((o) => o.value === percentile);
