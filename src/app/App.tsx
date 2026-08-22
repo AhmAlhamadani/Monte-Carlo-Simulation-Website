@@ -51,7 +51,7 @@ export default function App() {
   }, []);
 
   const persistRun = useCallback(
-    (analysis: Analysis, simulationResult: SimulationResult, quiet = false) => {
+    (analysis: Analysis, simulationResult: SimulationResult) => {
       if (!dbReady) return null;
       try {
         const run = upsertRun({
@@ -62,11 +62,9 @@ export default function App() {
         refreshRuns();
         setActiveId(run.id);
         setSaved(true);
-        if (!quiet) {
-          toast.success("Saved", {
-            description: run.name || "Untitled analysis",
-          });
-        }
+        toast.success("Saved", {
+          description: run.name || "Untitled analysis",
+        });
         return run;
       } catch {
         toast.error("Could not save run");
@@ -151,7 +149,6 @@ export default function App() {
     setMaxReached(0);
   }
 
-  // Auto-save metadata and matrix edits for the active run (debounced).
   useEffect(() => {
     if (!dbReady || !result || !activeId || !saved) return;
 
@@ -166,7 +163,6 @@ export default function App() {
         });
         refreshRuns();
       } catch {
-        /* ignore background save failures */
       }
     }, 600);
 

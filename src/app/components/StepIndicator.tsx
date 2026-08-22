@@ -7,7 +7,7 @@ export function StepIndicator({
   onStepClick,
   maxReached,
 }: {
-  current: number; // 0-based
+  current: number;
   onStepClick?: (step: number) => void;
   maxReached: number;
 }) {
@@ -43,10 +43,9 @@ export function StepIndicator({
                 <span
                   className={`hidden text-[0.9rem] sm:inline ${
                     isActive
-                      ? "text-foreground"
-                      : "text-muted-foreground"
+                      ? "font-semibold text-foreground"
+                      : "font-normal text-muted-foreground"
                   }`}
-                  style={{ fontWeight: isActive ? 600 : 400 }}
                 >
                   {label}
                 </span>

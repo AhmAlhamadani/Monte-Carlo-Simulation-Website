@@ -45,12 +45,12 @@ export function ResultsPage({
     <div className="mx-auto max-w-4xl">
       <header className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-foreground" style={{ fontSize: "1.9rem" }}>
+        <h1 className="text-[1.9rem] text-foreground">
             Results
           </h1>
           <p className="mt-1 text-muted-foreground">
             {analysis.name ? (
-              <span className="text-foreground" style={{ fontWeight: 600 }}>
+              <span className="font-semibold text-foreground">
                 {analysis.name}
               </span>
             ) : (
@@ -94,14 +94,14 @@ export function ResultsPage({
       </div>
 
       <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
-        <h2 className="text-foreground" style={{ fontSize: "1.1rem" }}>
+        <h2 className="text-[1.1rem] text-foreground">
           Distribution of abnormally low scores expected by chance
         </h2>
         <p className="mb-4 text-[0.85rem] text-muted-foreground">
           How often a healthy person would show each number of low scores across{" "}
           {result.iterations.toLocaleString()} simulations.
         </p>
-        <div style={{ width: "100%", height: 340 }}>
+        <div className="h-[340px] w-full">
           <ResponsiveContainer>
             <BarChart data={data} margin={{ top: 24, right: 8, left: 4, bottom: 24 }}>
               <CartesianGrid vertical={false} stroke="var(--border)" />
@@ -187,7 +187,7 @@ function Chip({ label, value }: { label: string; value: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-[0.8rem]">
       <span className="text-muted-foreground">{label}</span>
-      <span className="text-foreground" style={{ fontWeight: 600 }}>
+      <span className="font-semibold text-foreground">
         {value}
       </span>
     </span>
@@ -197,7 +197,7 @@ function Chip({ label, value }: { label: string; value: string }) {
 function SummaryCard({ big, caption }: { big: string; caption: string }) {
   return (
     <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-      <div className="text-primary" style={{ fontSize: "1.9rem", fontWeight: 700 }}>
+      <div className="text-[1.9rem] font-bold text-primary">
         {big}
       </div>
       <div className="mt-1 text-[0.85rem] text-muted-foreground">{caption}</div>

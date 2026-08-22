@@ -1,16 +1,6 @@
-// Monte Carlo engine for estimating the number of abnormally low scores
-// expected to occur by chance within a correlated test battery.
-//
-// Approach (after Crawford, Garthwaite & Gault): draw a large number of
-// samples from a multivariate normal distribution with the user-supplied
-// correlation matrix, count how many scores fall below the abnormality
-// threshold in each draw, then tabulate the resulting distribution.
-
 import jStat from "jstat";
 import { CholeskyDecomposition, Matrix } from "ml-matrix";
 
-// Cholesky with progressive jitter so hand-entered correlation matrices that
-// are only marginally non-positive-definite still yield a usable factor.
 function choleskyWithJitter(correlation: number[][]): Matrix {
   const n = correlation.length;
   let matrix = correlation.map((row) => row.slice());
@@ -22,14 +12,12 @@ function choleskyWithJitter(correlation: number[][]): Matrix {
         return chol.lowerTriangularMatrix;
       }
     } catch {
-      /* matrix may be invalid — retry with jitter */
     }
 
     const jitter = Math.pow(10, attempt - 6);
     for (let i = 0; i < n; i++) matrix[i][i] += jitter;
   }
 
-  // Fallback: treat tests as independent.
   return Matrix.eye(n, n);
 }
 

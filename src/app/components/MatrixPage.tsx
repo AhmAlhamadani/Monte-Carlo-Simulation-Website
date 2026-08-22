@@ -10,7 +10,7 @@ import {
 
 interface MatrixData {
   testNames: string[];
-  correlations: number[][]; // lower-triangular, [row][col] col<row
+  correlations: number[][];
 }
 
 const key = (r: number, c: number) => `${r}-${c}`;
@@ -32,7 +32,6 @@ export function MatrixPage({
     Array.from({ length: numTests }, (_, i) => initialNames[i] ?? `Test ${i + 1}`),
   );
 
-  // Editable cell values as strings for smooth typing.
   const [values, setValues] = useState<string[][]>(() =>
     Array.from({ length: numTests }, (_, r) =>
       Array.from({ length: numTests }, (_, c) =>
@@ -46,7 +45,6 @@ export function MatrixPage({
   const [error, setError] = useState("");
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  // Ordered list of editable (lower-triangular) cell coordinates.
   const cellOrder = useMemo(() => {
     const list: [number, number][] = [];
     for (let r = 1; r < numTests; r++)
@@ -55,7 +53,7 @@ export function MatrixPage({
   }, [numTests]);
 
   const isValid = (v: string) => {
-    if (v.trim() === "") return true; // empty handled separately
+    if (v.trim() === "") return true;
     const n = Number(v);
     return !isNaN(n) && n >= -1 && n <= 1;
   };
@@ -119,7 +117,7 @@ export function MatrixPage({
   return (
     <div className="mx-auto max-w-5xl">
       <header className="mb-4">
-        <h1 className="text-foreground" style={{ fontSize: "1.9rem" }}>
+        <h1 className="text-[1.9rem] text-foreground">
           Correlation matrix
         </h1>
         <p className="mt-1 text-muted-foreground">
@@ -138,8 +136,7 @@ export function MatrixPage({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span
-                        className="mx-auto flex size-9 items-center justify-center rounded-md bg-secondary text-[0.8rem] text-secondary-foreground"
-                        style={{ fontWeight: 600 }}
+                        className="mx-auto flex size-9 items-center justify-center rounded-md bg-secondary text-[0.8rem] font-semibold text-secondary-foreground"
                       >
                         T{c + 1}
                       </span>
@@ -156,8 +153,7 @@ export function MatrixPage({
                 <th className="sticky left-0 z-10 bg-card pr-2 text-left">
                   <div className="flex items-center gap-2">
                     <span
-                      className="flex size-7 shrink-0 items-center justify-center rounded-md bg-secondary text-[0.75rem] text-secondary-foreground"
-                      style={{ fontWeight: 600 }}
+                      className="flex size-7 shrink-0 items-center justify-center rounded-md bg-secondary text-[0.75rem] font-semibold text-secondary-foreground"
                     >
                       T{r + 1}
                     </span>
@@ -255,7 +251,6 @@ export function MatrixPage({
   );
 }
 
-// Preserve whatever has been entered (even if incomplete) when navigating back.
 function buildPartial(values: string[][], n: number): number[][] {
   const corr: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
   for (let i = 0; i < n; i++) corr[i][i] = 1;

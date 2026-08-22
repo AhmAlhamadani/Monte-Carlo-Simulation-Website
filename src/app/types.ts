@@ -4,10 +4,9 @@ export interface Analysis {
   id: string;
   name: string;
   notes: string;
-  percentile: number; // e.g. 5 for the 5th percentile
+  percentile: number;
   numTests: number;
   testNames: string[];
-  // Lower-triangular correlation values, indexed [row][col] for col < row.
   correlations: number[][];
   createdAt: number;
   updatedAt?: number;

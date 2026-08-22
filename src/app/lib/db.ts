@@ -120,7 +120,6 @@ function migrateFromLocalStorage() {
     localStorage.removeItem(LEGACY_STORAGE_KEY);
     persistDb();
   } catch {
-    /* ignore corrupt legacy data */
   }
 }
 

@@ -56,7 +56,7 @@ export function SetupPage({
   return (
     <div className="mx-auto max-w-3xl">
       <header className="mb-6">
-        <h1 className="text-foreground" style={{ fontSize: "1.9rem" }}>
+        <h1 className="text-[1.9rem] text-foreground">
           Analysis setup
         </h1>
         <p className="mt-1 text-muted-foreground">
@@ -66,7 +66,6 @@ export function SetupPage({
       </header>
 
       <div className="space-y-6 rounded-lg border border-border bg-card p-6 shadow-sm">
-        {/* Analysis name */}
         <div className="space-y-1.5">
           <Label htmlFor="analysis-name">Analysis name (optional)</Label>
           <Input
@@ -81,7 +80,6 @@ export function SetupPage({
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
-          {/* Percentile threshold */}
           <div className="space-y-1.5">
             <Label htmlFor="percentile">Abnormality threshold</Label>
             <Select
@@ -105,7 +103,6 @@ export function SetupPage({
             </p>
           </div>
 
-          {/* Number of tests */}
           <div className="space-y-1.5">
             <Label htmlFor="num-tests">Number of tests in the battery</Label>
             <Input
@@ -124,7 +121,6 @@ export function SetupPage({
           </div>
         </div>
 
-        {/* Notes */}
         <div className="space-y-1.5">
           <Label htmlFor="notes">Notes (optional)</Label>
           <Textarea

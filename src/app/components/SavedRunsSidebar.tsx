@@ -29,7 +29,7 @@ export function SavedRunsSidebar({
   return (
     <aside className="flex h-full w-full flex-col border-l border-border bg-card">
       <div className="border-b border-border px-4 py-4">
-        <h2 className="flex items-center gap-2 text-foreground" style={{ fontSize: "1rem" }}>
+        <h2 className="flex items-center gap-2 text-base text-foreground">
           <Clock className="size-4 text-primary" /> Saved runs
         </h2>
         <p className="mt-0.5 text-[0.8rem] text-muted-foreground">
@@ -95,7 +95,7 @@ function SavedRunItem({
           onClick={() => onOpen(run)}
           className="min-w-0 flex-1 text-left"
         >
-          <div className="truncate text-[0.9rem] text-foreground" style={{ fontWeight: 600 }}>
+          <div className="truncate text-[0.9rem] font-semibold text-foreground">
             {label}
           </div>
           <div className="mt-0.5 text-[0.78rem] text-muted-foreground">
