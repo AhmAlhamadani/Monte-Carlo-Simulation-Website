@@ -44,7 +44,8 @@ export function SavedRunsSidebar({
           <div className="flex flex-col items-center gap-2 px-6 py-10 text-center text-muted-foreground">
             <FileText className="size-8 opacity-40" />
             <p className="text-[0.85rem]">
-              Run an analysis and it will be saved automatically.
+              Save a matrix in progress or run an analysis and it will appear
+              here.
             </p>
           </div>
         ) : (
@@ -77,9 +78,11 @@ function SavedRunItem({
   onDelete: (id: string) => void;
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const oneOrMore = ((run.result.atLeast[1] ?? 0) * 100).toFixed(0);
   const label = run.name || "Untitled analysis";
   const updatedAt = run.updatedAt ?? run.createdAt;
+  const oneOrMore = run.result
+    ? ((run.result.atLeast[1] ?? 0) * 100).toFixed(0)
+    : null;
 
   return (
     <li>
@@ -99,7 +102,8 @@ function SavedRunItem({
             {label}
           </div>
           <div className="mt-0.5 text-[0.78rem] text-muted-foreground">
-            {run.numTests} tests · {run.percentile}th pct · {oneOrMore}% ≥1 low
+            {run.numTests} tests · {run.percentile}th pct
+            {oneOrMore != null ? ` · ${oneOrMore}% ≥1 low` : " · In progress"}
           </div>
           <div className="text-[0.72rem] text-muted-foreground">
             Updated{" "}

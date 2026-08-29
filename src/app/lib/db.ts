@@ -69,8 +69,8 @@ function rowToSavedRun(row: Record<string, unknown>): SavedRun {
     percentile: row.percentile as number,
     numTests: row.num_tests as number,
     testNames: JSON.parse(row.test_names as string) as string[],
-    correlations: JSON.parse(row.correlations as string) as number[][],
-    result: JSON.parse(row.result as string) as SimulationResult,
+    correlations: JSON.parse(row.correlations as string) as (number | null)[][],
+    result: JSON.parse(row.result as string) as SimulationResult | null,
     createdAt: row.created_at as number,
     updatedAt: row.updated_at as number,
   };

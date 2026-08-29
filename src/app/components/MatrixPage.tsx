@@ -1,4 +1,4 @@
-import { ArrowLeft, ClipboardPaste, Eraser, Play } from "lucide-react";
+import { ArrowLeft, ClipboardPaste, Eraser, Play, Save } from "lucide-react";
 import { Button } from "./ui/button";
 import { CorrelationGrid } from "./CorrelationGrid";
 import { useCorrelationMatrix } from "../hooks/useCorrelationMatrix";
@@ -9,20 +9,32 @@ export function MatrixPage({
   initialNames,
   initialCorrelations,
   onBack,
+  onSave,
   onRun,
+  onDirty,
 }: {
   numTests: number;
   initialNames: string[];
-  initialCorrelations: number[][];
+  initialCorrelations: (number | null)[][];
   onBack: (data: MatrixData) => void;
+  onSave: (data: MatrixData) => void;
   onRun: (data: MatrixData) => void;
+  onDirty?: () => void;
 }) {
-  const matrix = useCorrelationMatrix(numTests, initialNames, initialCorrelations);
+  const matrix = useCorrelationMatrix(
+    numTests,
+    initialNames,
+    initialCorrelations,
+    onDirty,
+  );
 
   function focusNext(r: number, c: number) {
     const idx = matrix.cellOrder.findIndex(([rr, cc]) => rr === r && cc === c);
     const nextCell = matrix.cellOrder[idx + 1];
-    if (nextCell) matrix.inputRefs.current[cellKey(nextCell[0], nextCell[1])]?.focus();
+    if (!nextCell) return;
+    const el = matrix.inputRefs.current[cellKey(nextCell[0], nextCell[1])];
+    el?.focus();
+    el?.select();
   }
 
   return (
@@ -36,8 +48,8 @@ export function MatrixPage({
           range from −1.0 to +1.0.
         </p>
         <p className="mt-3 rounded-md border border-border bg-muted/60 p-3 text-[0.85rem] text-muted-foreground">
-          You can paste a correlation matrix copied from a spreadsheet (Excel or
-          Google Sheets). Use <span className="text-foreground">Ctrl+V</span>{" "}
+          You can paste a correlation matrix copied from a tabular format such as Excel or
+          Google Sheets. Use <span className="text-foreground">Ctrl+V</span>{" "}
           (Cmd+V on Mac) or the button below. This only accepts spreadsheet copy
           and paste. If your table is in a different format (image, PDF, or a
           designed document), ask an AI tool to convert it into a spreadsheet
@@ -92,16 +104,26 @@ export function MatrixPage({
         >
           <ArrowLeft className="size-4" /> Back
         </Button>
-        <Button
-          size="lg"
-          className="gap-2"
-          onClick={() => {
-            const data = matrix.collect();
-            if (data) onRun(data);
-          }}
-        >
-          <Play className="size-4" /> Run analysis
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="lg"
+            className="gap-2"
+            onClick={() => onSave(matrix.snapshot())}
+          >
+            <Save className="size-4" /> Save
+          </Button>
+          <Button
+            size="lg"
+            className="gap-2"
+            onClick={() => {
+              const data = matrix.collect();
+              if (data) onRun(data);
+            }}
+          >
+            <Play className="size-4" /> Run analysis
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -1,11 +1,32 @@
-import type { MutableRefObject } from "react";
+import { useRef, type KeyboardEvent, type MutableRefObject } from "react";
 import { Input } from "./ui/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { cellKey, isValidCorrelation } from "../matrix/grid";
+import {
+  cellKey,
+  isValidCorrelation,
+  neighborFocus,
+  type MatrixDirection,
+  type MatrixFocus,
+} from "../matrix/grid";
+
+const ARROW_DIR: Record<string, MatrixDirection> = {
+  ArrowUp: "up",
+  ArrowDown: "down",
+  ArrowLeft: "left",
+  ArrowRight: "right",
+};
+
+function shouldLeaveOnArrow(el: HTMLInputElement, dir: "left" | "right") {
+  const start = el.selectionStart ?? 0;
+  const end = el.selectionEnd ?? 0;
+  const len = el.value.length;
+  if (start !== end) return start === 0 && end === len;
+  return dir === "left" ? start === 0 : end === len;
+}
 
 export function CorrelationGrid({
   names,
@@ -22,6 +43,65 @@ export function CorrelationGrid({
   onCellChange: (r: number, c: number, value: string) => void;
   onEnter: (r: number, c: number) => void;
 }) {
+  const nameRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  function focusTarget(target: MatrixFocus) {
+    const el =
+      target.kind === "name"
+        ? nameRefs.current[target.r]
+        : inputRefs.current[cellKey(target.r, target.c)];
+    if (!el) return;
+    el.focus();
+    el.select();
+  }
+
+  function handleNavKey(
+    e: KeyboardEvent<HTMLInputElement>,
+    from: MatrixFocus,
+  ) {
+    const dir = ARROW_DIR[e.key];
+    if (!dir || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
+
+    if (
+      (dir === "left" || dir === "right") &&
+      !shouldLeaveOnArrow(e.currentTarget, dir)
+    ) {
+      return;
+    }
+
+    const next = neighborFocus(from, dir, names.length);
+    if (!next) return;
+    e.preventDefault();
+    focusTarget(next);
+  }
+
+  function handleNameKeyDown(
+    e: KeyboardEvent<HTMLInputElement>,
+    r: number,
+  ) {
+    if (e.key === "Enter") {
+      const next = neighborFocus({ kind: "name", r }, "down", names.length);
+      if (!next) return;
+      e.preventDefault();
+      focusTarget(next);
+      return;
+    }
+    handleNavKey(e, { kind: "name", r });
+  }
+
+  function handleCellKeyDown(
+    e: KeyboardEvent<HTMLInputElement>,
+    r: number,
+    c: number,
+  ) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onEnter(r, c);
+      return;
+    }
+    handleNavKey(e, { kind: "cell", r, c });
+  }
+
   return (
     <div className="overflow-x-auto rounded-lg border border-border bg-card p-4 shadow-sm">
       <table className="border-separate border-spacing-1">
@@ -51,9 +131,13 @@ export function CorrelationGrid({
                     T{r + 1}
                   </span>
                   <Input
+                    ref={(el) => {
+                      nameRefs.current[r] = el;
+                    }}
                     value={rowName}
                     aria-label={`Name for test ${r + 1}`}
                     onChange={(e) => onNameChange(r, e.target.value)}
+                    onKeyDown={(e) => handleNameKeyDown(e, r)}
                     className="h-8 w-40"
                   />
                 </div>
@@ -87,12 +171,7 @@ export function CorrelationGrid({
                       aria-label={`Correlation between ${names[r]} and ${names[c]}`}
                       aria-invalid={invalid}
                       onChange={(e) => onCellChange(r, c, e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          onEnter(r, c);
-                        }
-                      }}
+                      onKeyDown={(e) => handleCellKeyDown(e, r, c)}
                       className={`size-9 rounded-md border text-center text-[0.8rem] outline-none ${
                         invalid
                           ? "border-destructive bg-destructive/10 text-destructive"

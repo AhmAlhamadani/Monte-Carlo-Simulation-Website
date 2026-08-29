@@ -7,13 +7,13 @@ export interface Analysis {
   percentile: number;
   numTests: number;
   testNames: string[];
-  correlations: number[][];
+  correlations: (number | null)[][];
   createdAt: number;
   updatedAt?: number;
 }
 
 export interface SavedRun extends Analysis {
-  result: SimulationResult;
+  result: SimulationResult | null;
 }
 
 export const PERCENTILE_OPTIONS = [

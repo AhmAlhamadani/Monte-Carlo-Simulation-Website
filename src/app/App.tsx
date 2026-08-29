@@ -5,9 +5,12 @@ import { SetupPage, type SetupValues } from "./components/SetupPage";
 import { MatrixPage } from "./components/MatrixPage";
 import { ResultsPage } from "./components/ResultsPage";
 import { SavedRunsSidebar } from "./components/SavedRunsSidebar";
+import { NewAnalysisFab } from "./components/NewAnalysisFab";
 import { StepIndicator } from "./components/StepIndicator";
+import { HelpPage, HowToUseButton } from "./components/HelpPage";
 import { deleteRun, initDb, listRuns, upsertRun } from "./lib/db";
 import { runSimulation, type SimulationResult } from "./lib/monte-carlo";
+import { isMatrixComplete } from "./matrix/grid";
 import type { Analysis, SavedRun } from "./types";
 
 const emptyDraft = (): Analysis => ({
@@ -30,6 +33,7 @@ export default function App() {
   const [savedRuns, setSavedRuns] = useState<SavedRun[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -51,7 +55,11 @@ export default function App() {
   }, []);
 
   const persistRun = useCallback(
-    (analysis: Analysis, simulationResult: SimulationResult) => {
+    (
+      analysis: Analysis,
+      simulationResult: SimulationResult | null,
+      message: string | false = "Saved",
+    ) => {
       if (!dbReady) return null;
       try {
         const run = upsertRun({
@@ -62,9 +70,14 @@ export default function App() {
         refreshRuns();
         setActiveId(run.id);
         setSaved(true);
-        toast.success("Saved", {
-          description: run.name || "Untitled analysis",
-        });
+        if (message !== false) {
+          toast.success(message, {
+            description:
+              simulationResult == null
+                ? "This matrix is in Saved runs. You can finish it later."
+                : run.name || "Untitled analysis",
+          });
+        }
         return run;
       } catch {
         toast.error("Could not save run");
@@ -73,6 +86,8 @@ export default function App() {
     },
     [dbReady, refreshRuns],
   );
+
+  const markUnsaved = useCallback(() => setSaved(false), []);
 
   const goTo = (s: number) => {
     setStep(s);
@@ -100,7 +115,7 @@ export default function App() {
     goTo(1);
   }
 
-  function handleRun(data: { testNames: string[]; correlations: number[][] }) {
+  function handleRun(data: { testNames: string[]; correlations: (number | null)[][] }) {
     const runId = activeId ?? draft.id;
     const analysis: Analysis = {
       ...draft,
@@ -109,24 +124,53 @@ export default function App() {
       correlations: data.correlations,
     };
     setDraft(analysis);
-    const res = runSimulation(data.correlations, analysis.percentile);
+    const res = runSimulation(data.correlations as number[][], analysis.percentile);
     setResult(res);
     goTo(2);
-    persistRun(analysis, res);
+    persistRun(analysis, res, false);
     toast.success("Analysis complete", {
+      duration: 8000,
       description: `${analysis.numTests} tests simulated at the ${analysis.percentile}th percentile.`,
     });
   }
 
+  function handleSaveMatrix(data: { testNames: string[]; correlations: (number | null)[][] }) {
+    const runId = activeId ?? draft.id;
+    const analysis: Analysis = {
+      ...draft,
+      id: runId,
+      testNames: data.testNames,
+      correlations: data.correlations,
+    };
+    setDraft(analysis);
+    const complete = isMatrixComplete(data.correlations, data.testNames.length);
+    const nextResult = complete ? result : null;
+    if (!complete) setResult(null);
+    persistRun(
+      analysis,
+      nextResult,
+      complete ? "Saved" : "Saved for later",
+    );
+  }
+
   function handleOpenRun(run: SavedRun) {
     setDraft(run);
-    setResult(run.result);
     setActiveId(run.id);
     setSaved(true);
-    setStep(2);
-    setMaxReached(2);
-    toast("Opened for editing", {
-      description: "Use the steps above to change inputs, then re-run to update results.",
+    if (run.result && isMatrixComplete(run.correlations, run.numTests)) {
+      setResult(run.result);
+      setStep(2);
+      setMaxReached(2);
+      toast("Opened for editing", {
+        description: "Use the steps above to change inputs, then re-run to update results.",
+      });
+      return;
+    }
+    setResult(null);
+    setStep(1);
+    setMaxReached(run.result ? 2 : 1);
+    toast("Opened saved matrix", {
+      description: "You can finish entering correlations, then run the analysis.",
     });
   }
 
@@ -193,43 +237,73 @@ export default function App() {
     <div className="flex h-full min-h-0 w-full flex-col bg-background text-foreground">
       <div className="flex min-h-0 flex-1">
         <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
-          <div className="border-b border-border bg-card px-6 py-3">
-            <StepIndicator
-              current={step}
-              maxReached={maxReached}
-              onStepClick={(s) => setStep(s)}
+          <div className="flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-3">
+            <div className="min-w-0 flex-1">
+              <StepIndicator
+                current={step}
+                maxReached={maxReached}
+                onStepClick={(s) => {
+                  setShowHelp(false);
+                  setStep(s);
+                }}
+              />
+            </div>
+            <HowToUseButton
+              active={showHelp}
+              onClick={() => setShowHelp((open) => !open)}
             />
           </div>
 
-          <div className="flex-1 px-6 py-8">
-            {step === 0 && (
-              <SetupPage initial={setupInitial} onContinue={handleSetupContinue} />
+          <div className="flex min-h-0 flex-1 flex-col">
+            {showHelp && (
+              <div className="flex-1 px-6 py-8">
+                <HelpPage onBack={() => setShowHelp(false)} />
+              </div>
             )}
-            {step === 1 && (
-              <MatrixPage
-                numTests={draft.numTests}
-                initialNames={draft.testNames}
-                initialCorrelations={draft.correlations}
-                onBack={(d) => {
-                  setDraft((prev) => ({
-                    ...prev,
-                    testNames: d.testNames,
-                    correlations: d.correlations,
-                  }));
-                  setStep(0);
-                }}
-                onRun={handleRun}
-              />
-            )}
-            {step === 2 && result && (
-              <ResultsPage
-                analysis={draft}
-                result={result}
-                saved={saved}
-                onNew={handleNewAnalysis}
-                onEdit={() => setStep(1)}
-              />
-            )}
+            <div
+              className={
+                showHelp
+                  ? "hidden"
+                  : step === 0
+                    ? "flex-1 px-6 py-8"
+                    : "flex-1 px-6 pt-8 pb-28"
+              }
+            >
+              {step === 0 && (
+                <SetupPage
+                  key={draft.id}
+                  initial={setupInitial}
+                  onContinue={handleSetupContinue}
+                />
+              )}
+              {step === 1 && (
+                <MatrixPage
+                  key={draft.id}
+                  numTests={draft.numTests}
+                  initialNames={draft.testNames}
+                  initialCorrelations={draft.correlations}
+                  onBack={(d) => {
+                    setDraft((prev) => ({
+                      ...prev,
+                      testNames: d.testNames,
+                      correlations: d.correlations,
+                    }));
+                    setStep(0);
+                  }}
+                  onSave={handleSaveMatrix}
+                  onRun={handleRun}
+                  onDirty={markUnsaved}
+                />
+              )}
+              {step === 2 && result && (
+                <ResultsPage
+                  analysis={draft}
+                  result={result}
+                  saved={saved}
+                  onEdit={() => setStep(1)}
+                />
+              )}
+            </div>
           </div>
         </main>
 
@@ -237,13 +311,19 @@ export default function App() {
           <SavedRunsSidebar
             runs={savedRuns}
             activeId={activeId}
-            onOpen={handleOpenRun}
+            onOpen={(run) => {
+              setShowHelp(false);
+              handleOpenRun(run);
+            }}
             onDelete={handleDeleteRun}
           />
         </div>
       </div>
 
-      <Toaster position="bottom-right" />
+      {step > 0 && !showHelp && (
+        <NewAnalysisFab unsaved={!saved} onConfirm={handleNewAnalysis} />
+      )}
+      <Toaster position="top-right" />
     </div>
   );
 }

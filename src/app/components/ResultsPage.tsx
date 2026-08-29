@@ -1,24 +1,40 @@
-import { Check, Cloud, Pencil, RotateCcw } from "lucide-react";
+import { useState } from "react";
+import { Check, Cloud, Download, Pencil } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { ResultsChart } from "./ResultsChart";
 import type { Analysis } from "../types";
 import type { SimulationResult } from "../lib/monte-carlo";
 import { formatPct, summariseResults } from "../results/summary";
+import { exportResultsDocx } from "../results/export-docx";
 
 export function ResultsPage({
   analysis,
   result,
   saved,
-  onNew,
   onEdit,
 }: {
   analysis: Analysis;
   result: SimulationResult;
   saved: boolean;
-  onNew: () => void;
   onEdit: () => void;
 }) {
   const { chartData, mostLikely, oneOrMore, twoOrMore } = summariseResults(result);
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      await exportResultsDocx(analysis, result);
+      toast.success("Results exported", {
+        description: "A Word document has been downloaded.",
+      });
+    } catch {
+      toast.error("Could not export results");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -81,12 +97,18 @@ export function ResultsPage({
         </div>
       )}
 
-      <div className="mt-6 flex items-center justify-between">
+      <div className="mt-6 flex items-center justify-between gap-3">
         <Button variant="outline" size="lg" className="gap-2" onClick={onEdit}>
           <Pencil className="size-4" /> Edit inputs
         </Button>
-        <Button size="lg" className="gap-2" onClick={onNew}>
-          <RotateCcw className="size-4" /> Start new analysis
+        <Button
+          size="lg"
+          className="gap-2"
+          onClick={() => void handleExport()}
+          disabled={exporting}
+        >
+          <Download className="size-4" />
+          {exporting ? "Exporting…" : "Export results"}
         </Button>
       </div>
     </div>

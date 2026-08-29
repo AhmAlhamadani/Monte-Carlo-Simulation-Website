@@ -1,6 +1,6 @@
 export interface MatrixData {
   testNames: string[];
-  correlations: number[][];
+  correlations: (number | null)[][];
 }
 
 export function cellKey(r: number, c: number) {
@@ -11,7 +11,10 @@ export function defaultTestNames(numTests: number, initialNames: string[]) {
   return Array.from({ length: numTests }, (_, i) => initialNames[i] ?? `Test ${i + 1}`);
 }
 
-export function initialValueGrid(numTests: number, initialCorrelations: number[][]) {
+export function initialValueGrid(
+  numTests: number,
+  initialCorrelations: (number | null)[][],
+) {
   return Array.from({ length: numTests }, (_, r) =>
     Array.from({ length: numTests }, (_, c) =>
       c < r && initialCorrelations[r]?.[c] != null
@@ -32,6 +35,33 @@ export function lowerTriangleCells(numTests: number): [number, number][] {
   for (let r = 1; r < numTests; r++)
     for (let c = 0; c < r; c++) list.push([r, c]);
   return list;
+}
+
+export type MatrixDirection = "up" | "down" | "left" | "right";
+
+export type MatrixFocus =
+  | { kind: "name"; r: number }
+  | { kind: "cell"; r: number; c: number };
+
+export function neighborFocus(
+  from: MatrixFocus,
+  dir: MatrixDirection,
+  numTests: number,
+): MatrixFocus | null {
+  if (from.kind === "name") {
+    if (dir === "up") return from.r > 0 ? { kind: "name", r: from.r - 1 } : null;
+    if (dir === "down") return from.r + 1 < numTests ? { kind: "name", r: from.r + 1 } : null;
+    if (dir === "right") return from.r > 0 ? { kind: "cell", r: from.r, c: 0 } : null;
+    return null;
+  }
+
+  const { r, c } = from;
+  if (dir === "left") {
+    return c > 0 ? { kind: "cell", r, c: c - 1 } : { kind: "name", r };
+  }
+  if (dir === "right") return c + 1 < r ? { kind: "cell", r, c: c + 1 } : null;
+  if (dir === "up") return r - 1 > c ? { kind: "cell", r: r - 1, c } : null;
+  return r + 1 < numTests ? { kind: "cell", r: r + 1, c } : null;
 }
 
 export function isValidCorrelation(v: string) {
@@ -97,8 +127,24 @@ export function collectMatrix(
   };
 }
 
-export function buildPartial(values: string[][], n: number): number[][] {
-  const corr: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
+export function isMatrixComplete(
+  corr: (number | null)[][],
+  numTests: number,
+) {
+  if (corr.length !== numTests) return false;
+  for (let r = 1; r < numTests; r++) {
+    for (let c = 0; c < r; c++) {
+      const v = corr[r]?.[c];
+      if (v == null || Number.isNaN(v)) return false;
+    }
+  }
+  return true;
+}
+
+export function buildPartial(values: string[][], n: number): (number | null)[][] {
+  const corr: (number | null)[][] = Array.from({ length: n }, () =>
+    new Array(n).fill(null),
+  );
   for (let i = 0; i < n; i++) corr[i][i] = 1;
   for (let r = 1; r < n; r++)
     for (let c = 0; c < r; c++) {

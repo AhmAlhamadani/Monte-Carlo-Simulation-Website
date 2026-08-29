@@ -18,7 +18,8 @@ import {
 export function useCorrelationMatrix(
   numTests: number,
   initialNames: string[],
-  initialCorrelations: number[][],
+  initialCorrelations: (number | null)[][],
+  onDirty?: () => void,
 ) {
   const [names, setNames] = useState(() => defaultTestNames(numTests, initialNames));
   const [values, setValues] = useState(() =>
@@ -31,6 +32,7 @@ export function useCorrelationMatrix(
   const cellOrder = useMemo(() => lowerTriangleCells(numTests), [numTests]);
 
   const setCell = (r: number, c: number, v: string) => {
+    onDirty?.();
     setValues((prev) => {
       const next = prev.map((row) => row.slice());
       next[r][c] = v;
@@ -39,6 +41,7 @@ export function useCorrelationMatrix(
   };
 
   const setName = (index: number, name: string) => {
+    onDirty?.();
     setNames((prev) => {
       const next = prev.slice();
       next[index] = name;
@@ -77,9 +80,10 @@ export function useCorrelationMatrix(
       }
       setError("");
       setInfo("Matrix filled from spreadsheet.");
+      onDirty?.();
       return true;
     },
-    [numTests],
+    [numTests, onDirty],
   );
 
   useEffect(() => {
@@ -106,6 +110,7 @@ export function useCorrelationMatrix(
   };
 
   const clearAll = () => {
+    onDirty?.();
     setValues(emptyValueGrid(numTests));
     setError("");
     setInfo("");
