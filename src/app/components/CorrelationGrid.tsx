@@ -9,23 +9,16 @@ import {
   cellKey,
   isValidCorrelation,
   neighborFocus,
+  nextEnterCell,
   type MatrixDirection,
   type MatrixFocus,
 } from "../matrix/grid";
 
-const ARROW_DIR: Record<string, MatrixDirection> = {
-  ArrowUp: "up",
-  ArrowDown: "down",
-  ArrowLeft: "left",
-  ArrowRight: "right",
-};
-
-function shouldLeaveOnArrow(el: HTMLInputElement, dir: "left" | "right") {
+function canLeaveHorizontally(el: HTMLInputElement, dir: "left" | "right") {
   const start = el.selectionStart ?? 0;
   const end = el.selectionEnd ?? 0;
-  const len = el.value.length;
-  if (start !== end) return start === 0 && end === len;
-  return dir === "left" ? start === 0 : end === len;
+  if (start !== end) return start === 0 && end === el.value.length;
+  return dir === "left" ? start === 0 : end === el.value.length;
 }
 
 export function CorrelationGrid({
@@ -34,72 +27,50 @@ export function CorrelationGrid({
   inputRefs,
   onNameChange,
   onCellChange,
-  onEnter,
 }: {
   names: string[];
   values: string[][];
   inputRefs: MutableRefObject<Record<string, HTMLInputElement | null>>;
   onNameChange: (index: number, name: string) => void;
   onCellChange: (r: number, c: number, value: string) => void;
-  onEnter: (r: number, c: number) => void;
 }) {
   const nameRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const n = names.length;
 
-  function focusTarget(target: MatrixFocus) {
+  function focus(target: MatrixFocus) {
     const el =
       target.kind === "name"
         ? nameRefs.current[target.r]
         : inputRefs.current[cellKey(target.r, target.c)];
-    if (!el) return;
-    el.focus();
-    el.select();
+    el?.focus();
+    el?.select();
   }
 
-  function handleNavKey(
-    e: KeyboardEvent<HTMLInputElement>,
-    from: MatrixFocus,
-  ) {
-    const dir = ARROW_DIR[e.key];
-    if (!dir || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
+  function handleKey(e: KeyboardEvent<HTMLInputElement>, from: MatrixFocus) {
+    if (e.key === "Enter") {
+      const next =
+        from.kind === "name"
+          ? neighborFocus(from, "down", n)
+          : nextEnterCell(from.r, from.c, n);
+      if (from.kind === "cell" || next) e.preventDefault();
+      if (next) focus(next);
+      return;
+    }
 
+    if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (!e.key.startsWith("Arrow")) return;
+    const dir = e.key.slice(5).toLowerCase() as MatrixDirection;
+    if (dir !== "up" && dir !== "down" && dir !== "left" && dir !== "right") return;
     if (
       (dir === "left" || dir === "right") &&
-      !shouldLeaveOnArrow(e.currentTarget, dir)
+      !canLeaveHorizontally(e.currentTarget, dir)
     ) {
       return;
     }
-
-    const next = neighborFocus(from, dir, names.length);
+    const next = neighborFocus(from, dir, n);
     if (!next) return;
     e.preventDefault();
-    focusTarget(next);
-  }
-
-  function handleNameKeyDown(
-    e: KeyboardEvent<HTMLInputElement>,
-    r: number,
-  ) {
-    if (e.key === "Enter") {
-      const next = neighborFocus({ kind: "name", r }, "down", names.length);
-      if (!next) return;
-      e.preventDefault();
-      focusTarget(next);
-      return;
-    }
-    handleNavKey(e, { kind: "name", r });
-  }
-
-  function handleCellKeyDown(
-    e: KeyboardEvent<HTMLInputElement>,
-    r: number,
-    c: number,
-  ) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      onEnter(r, c);
-      return;
-    }
-    handleNavKey(e, { kind: "cell", r, c });
+    focus(next);
   }
 
   return (
@@ -137,7 +108,7 @@ export function CorrelationGrid({
                     value={rowName}
                     aria-label={`Name for test ${r + 1}`}
                     onChange={(e) => onNameChange(r, e.target.value)}
-                    onKeyDown={(e) => handleNameKeyDown(e, r)}
+                    onKeyDown={(e) => handleKey(e, { kind: "name", r })}
                     className="h-8 w-40"
                   />
                 </div>
@@ -171,7 +142,7 @@ export function CorrelationGrid({
                       aria-label={`Correlation between ${names[r]} and ${names[c]}`}
                       aria-invalid={invalid}
                       onChange={(e) => onCellChange(r, c, e.target.value)}
-                      onKeyDown={(e) => handleCellKeyDown(e, r, c)}
+                      onKeyDown={(e) => handleKey(e, { kind: "cell", r, c })}
                       className={`size-9 rounded-md border text-center text-[0.8rem] outline-none ${
                         invalid
                           ? "border-destructive bg-destructive/10 text-destructive"

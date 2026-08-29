@@ -2,7 +2,7 @@ import { ArrowLeft, ClipboardPaste, Eraser, Play, Save } from "lucide-react";
 import { Button } from "./ui/button";
 import { CorrelationGrid } from "./CorrelationGrid";
 import { useCorrelationMatrix } from "../hooks/useCorrelationMatrix";
-import { cellKey, type MatrixData } from "../matrix/grid";
+import type { MatrixData } from "../matrix/grid";
 
 export function MatrixPage({
   numTests,
@@ -27,15 +27,6 @@ export function MatrixPage({
     initialCorrelations,
     onDirty,
   );
-
-  function focusNext(r: number, c: number) {
-    const idx = matrix.cellOrder.findIndex(([rr, cc]) => rr === r && cc === c);
-    const nextCell = matrix.cellOrder[idx + 1];
-    if (!nextCell) return;
-    const el = matrix.inputRefs.current[cellKey(nextCell[0], nextCell[1])];
-    el?.focus();
-    el?.select();
-  }
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -82,7 +73,6 @@ export function MatrixPage({
         inputRefs={matrix.inputRefs}
         onNameChange={matrix.setName}
         onCellChange={matrix.setCell}
-        onEnter={focusNext}
       />
 
       {matrix.info && (

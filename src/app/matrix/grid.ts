@@ -46,22 +46,25 @@ export type MatrixFocus =
 export function neighborFocus(
   from: MatrixFocus,
   dir: MatrixDirection,
-  numTests: number,
+  n: number,
 ): MatrixFocus | null {
   if (from.kind === "name") {
     if (dir === "up") return from.r > 0 ? { kind: "name", r: from.r - 1 } : null;
-    if (dir === "down") return from.r + 1 < numTests ? { kind: "name", r: from.r + 1 } : null;
+    if (dir === "down") return from.r + 1 < n ? { kind: "name", r: from.r + 1 } : null;
     if (dir === "right") return from.r > 0 ? { kind: "cell", r: from.r, c: 0 } : null;
     return null;
   }
-
   const { r, c } = from;
-  if (dir === "left") {
-    return c > 0 ? { kind: "cell", r, c: c - 1 } : { kind: "name", r };
-  }
+  if (dir === "left") return c > 0 ? { kind: "cell", r, c: c - 1 } : { kind: "name", r };
   if (dir === "right") return c + 1 < r ? { kind: "cell", r, c: c + 1 } : null;
   if (dir === "up") return r - 1 > c ? { kind: "cell", r: r - 1, c } : null;
-  return r + 1 < numTests ? { kind: "cell", r: r + 1, c } : null;
+  return r + 1 < n ? { kind: "cell", r: r + 1, c } : null;
+}
+
+export function nextEnterCell(r: number, c: number, n: number): MatrixFocus | null {
+  if (c + 1 < r) return { kind: "cell", r, c: c + 1 };
+  if (r + 1 < n) return { kind: "cell", r: r + 1, c: 0 };
+  return null;
 }
 
 export function isValidCorrelation(v: string) {
